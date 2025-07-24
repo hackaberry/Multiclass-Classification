@@ -8,8 +8,8 @@ class ClassificationModel(nn.Module):
 		self.layer_1 = nn.Linear(in_features=in_features,out_features=hidden_units)
 		self.layer_2 = nn.Linear(in_features=hidden_units, out_features=hidden_units)
 		self.layer_3 = nn.Linear(in_features=hidden_units, out_features= out_features)
-		self.relu = nn.ReLU()
+		self.relu = nn.ReLU() # Activation function used to break linearity
 
 	def forward(self,X:torch.Tensor):
 		z = self.layer_3(self.relu(self.layer_2(self.relu(self.layer_1(X)))))
-		return z
+		return z # logits

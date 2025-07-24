@@ -22,7 +22,6 @@ def plot_loss(x,y):
 	canvas.draw()
 
 def plot_decision_boundary(model: torch.nn.Module, X: torch.Tensor, y: torch.Tensor):
-	# Credit to Daniel Bourke: https://github.com/mrdbourke. Minor modifications were made
 
     # Put everything to CPU 
     model.to("cpu")
@@ -41,11 +40,7 @@ def plot_decision_boundary(model: torch.nn.Module, X: torch.Tensor, y: torch.Ten
     with torch.inference_mode():
         y_logits = model(X_to_pred_on)
 
-    # Test for multi-class or binary and adjust logits to prediction labels
-    if len(torch.unique(y)) > 2:
-        y_pred = torch.softmax(y_logits, dim=1).argmax(dim=1)  # mutli-class
-    else:
-        y_pred = torch.round(torch.sigmoid(y_logits))  # binary
+    y_pred = torch.softmax(y_logits, dim=1).argmax(dim=1) # logits -> probabilities -> labels
 
     # Reshape preds and plot
     plot_decision_boundary_graph.clear()    
@@ -64,7 +59,7 @@ def accuracy_fn(preds,labels):
 
 # This is the training/testing loop that is called through the button presses. It invokes other functions
 def training_loop(model,next_n_epochs):
-	global epoch # For tracking the x-values of the loss curve
+	global epoch # For tracking x-values of the loss curve
 
 	for x in range(next_n_epochs):
 
@@ -106,6 +101,8 @@ RANDOM_SEED = 1
 HIDDEN_UNITS = 5
 IN_FEATURES = 2
 OUT_FEATURES = 4
+LEARNING_RATE = 0.1
+TEST_SIZE = 0.2
 
 # For loss graph
 epoch = 0
@@ -117,13 +114,13 @@ device = "cuda" if torch.cuda.is_available() else "cpu"
 model = ClassificationModel(IN_FEATURES,OUT_FEATURES,HIDDEN_UNITS).to(device=device)
 
 loss_fn = nn.CrossEntropyLoss()
-optimizer = torch.optim.SGD(model.parameters(),lr=0.1)
+optimizer = torch.optim.SGD(model.parameters(),lr=LEARNING_RATE)
 
 # Dataset consists of sklearn "make_blobs" toy dataset
 X, y = make_blobs(n_samples=N_SAMPLES, n_features=N_FEATURES, random_state=RANDOM_SEED)
-
-X_train, X_test, y_train, y_test = train_test_split(X,y,test_size=0.2,random_state=RANDOM_SEED)
-
+# Splitting data into train & test subsets
+X_train, X_test, y_train, y_test = train_test_split(X,y,test_size=TEST_SIZE,random_state=RANDOM_SEED)
+# Getting data ready as tensors
 X_train,y_train = torch.from_numpy(X_train).type(torch.float), torch.from_numpy(y_train).type(torch.long)
 X_test,y_test = torch.from_numpy(X_test).type(torch.float), torch.from_numpy(y_test).type(torch.long)
 
